@@ -1,0 +1,23 @@
+async function chargerImage() {
+   try {
+      const req = await fetch('http://localhost:3000/api/products')
+        
+      if (!req.ok) {
+        throw new Error(`Erreur HTTP : ${req.status}`)
+        
+      }
+
+      const datas = await req.json()
+      datas.forEach(product => {
+        const newItem = document.createElement('article')
+        newItem.innerHTML = `<article>
+                                <img src="${product.image}" alt="Titre produit">
+                                <a href="product.html?id=${product._id}">Buy ${product.shorttitle}</a>
+                            </article>`
+        document.querySelector('.products').append(newItem)
+        });
+   } catch (e) {
+      console.error("Une erreur s'est produite :", e)
+   }
+}
+chargerImage()
