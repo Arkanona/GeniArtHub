@@ -6,7 +6,7 @@ async function chargerImage() {
         throw new Error(`Erreur HTTP : ${req.status}`)
         
       }
-
+      // Permet d'afficher chaque tableau avec son titre
       const datas = await req.json()
       datas.forEach(product => {
         const newItem = document.createElement('article')

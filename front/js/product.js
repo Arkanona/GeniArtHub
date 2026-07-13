@@ -17,9 +17,6 @@ async function chargerProduct() {
         let produitCourant = null
         
         datas.forEach(product => {
-            
-        
-            // console.log(storage)
 
             if (product._id == artId) {
            
@@ -53,7 +50,7 @@ async function chargerProduct() {
                     document.querySelector('#format').append(option)
                 })
             
-                
+                // Au changement de select le prix change aussi
                 const select = document.querySelector('#format')
                 select.addEventListener('change', function () {
                     const tailleSelect = select.value
@@ -64,6 +61,7 @@ async function chargerProduct() {
                     }
                 
                 })
+                // Au changement de la quantité de tableaux le prix change et est enregistrer dans le local storage
                 const quantityInput = document.querySelector('#quantity')
                 quantityInput.addEventListener('input', function() {
                     const tailleSelect = select.value
@@ -73,13 +71,11 @@ async function chargerProduct() {
                     const final = localStorage.getItem('datas', JSON.stringify(result)) ?? result;
                     
                     if(declinaisonPrice){
-                        localStorage.setItem('datas', JSON.parse(result))
+                        
                         document.querySelector('.showprice').textContent = `${result}€` 
                         
-
                     }
-                    
-                    // const finalResult = JSON.stringify(localStorage.getItem('result'))
+                    localStorage.setItem('datas', JSON.parse(result))
                 })
                 
             }  
