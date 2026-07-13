@@ -10,10 +10,10 @@ async function chargerImage() {
       const datas = await req.json()
       datas.forEach(product => {
         const newItem = document.createElement('article')
-        newItem.innerHTML = `<article>
+        newItem.innerHTML = `
                                 <img src="${product.image}" alt="Titre produit">
                                 <a href="product.html?id=${product._id}">Buy ${product.shorttitle}</a>
-                            </article>`
+                            `
         document.querySelector('.products').append(newItem)
         });
    } catch (e) {
