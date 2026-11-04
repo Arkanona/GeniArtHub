@@ -1,89 +1,97 @@
-// Récupération de l'id des tableaux
-const params = new URLSearchParams(window.location.search)
-const artId = params.get('id')
+// Récupérer l'id de l'url
+const url = new URL(window.location.href)
+const id = url.searchParams.get('id')
 
-// Redirection vers la page ou on clique
-
-async function chargerProduct() {
-    try {
-        const req = await fetch(`http://localhost:3000/api/products`)
-
-        if (!req.ok) {
-            throw new Error(`Erreur HTTP : ${req.status}`)
-        }
-
-        const datas = await req.json() 
-        
-        let produitCourant = null
-        
-        datas.forEach(product => {
-
-            if (product._id == artId) {
-           
-                produitCourant = product
-                const newItem = document.querySelector('.detailoeuvre')
-                newItem.innerHTML = `<article>
-                    <figure>
-                        <img src="${product.image}" alt="Titre de l'oeuvre">
-                    </figure>
-                    <div>
-                        <h1>${product.titre}</h1>
-                        <p>Plongez dans l'univers mystique de 'Bird', une œuvre d'art captivante qui transcende les limites de la réalité. Réalisée dans le style éthéré et spectral, cette pièce évoque la présence d'un oiseau envoûtant qui semble flotter dans l'au-delà.</p>
-                        <div class="price">
-                            <p>Acheter pour</p>
-                            <span class="showprice">${product.declinaisons[0].prix}€</span>
-                        </div>
-                        <div class="declinaison">
-                            <input type="number" name="quantity" id="quantity" placeholder="1" value="1" min="1" max="100">
-                            <select name="format" id="format"></select>
-                        </div>
-                        <a class="button-buy" href="cart.html">Buy ${product.shorttitle}</a>
-                    </div>
-                </article>
-                <aside>
-                    <h2>Description de l'oeuvre : ${product.description}</h2>
-                </aside>`
-            
-                product.declinaisons.forEach(e => {
-                    const option = document.createElement('option')
-                    option.innerHTML = `${e.taille}`
-                    document.querySelector('#format').append(option)
-                })
-            
-                // Au changement de select le prix change aussi
-                const select = document.querySelector('#format')
-                select.addEventListener('change', function () {
-                    const tailleSelect = select.value
-                    const declinaisonSelect = produitCourant.declinaisons.find(e => e.taille == tailleSelect)
-
-                    if (declinaisonSelect) {
-                        document.querySelector('.showprice').textContent = `${declinaisonSelect.prix}€`
-                    }
-                
-                })
-                // Au changement de la quantité de tableaux le prix change et est enregistrer dans le local storage
-                const quantityInput = document.querySelector('#quantity')
-                quantityInput.addEventListener('input', function() {
-                    const tailleSelect = select.value
-                    const declinaisonPrice = produitCourant.declinaisons.find(e => e.taille == tailleSelect)
-                    const result = declinaisonPrice.prix * quantityInput.value
-                    
-                    const final = localStorage.getItem('datas', JSON.stringify(result)) ?? result;
-                    
-                    if(declinaisonPrice){
-                        
-                        document.querySelector('.showprice').textContent = `${result}€` 
-                        
-                    }
-                    localStorage.setItem('datas', JSON.parse(result))
-                })
-                
-            }  
-        })    
-
-   } catch (e) {
-      console.error("Une erreur s'est produite :", e)
-   }
+// Récupérer les données de l'api
+async function init(){
+    const datas = await getDatas()
+    showProduct(datas)
 }
-chargerProduct()
+init()
 
+async function getDatas(){
+    const req = await fetch(`http://localhost:3000/api/products/${id}`)
+    return await req.json()
+}
+
+function showProduct(product){
+    // Changer le title
+    document.title = `${product.titre} - GeniArtHub`
+    // Changer l'image
+    document.querySelector('.detailoeuvre img').src = product.image
+    // Changer le Alt de l'image
+    document.querySelector('.detailoeuvre img').alt = product.titre
+    // Changer le titre
+    document.querySelector('h1').textContent = product.titre
+    // Changer le contenu de la description courte (prendre la description et la tronquer à 200 caractères)
+    document.querySelector('article > div > p').textContent = `${product.description.substring(0, 200)}...`
+
+    // Changer le prix en prenant le prix de la première déclinaison
+    document.querySelector('.showprice').textContent = `${product.declinaisons[0].prix}€`
+
+    // Changer le contenu du bouton en affichant "Buy + shorttitle"
+    document.querySelector('.button-buy').textContent = `Buy ${product.shorttitle}`
+
+    // Changer le contenu du h2 en affichant "Description de l'oeuvre : + titre"
+    document.querySelector('h2').textContent = `Description de l'oeuvre : ${product.titre}`
+
+    // Changer le contenu de la description longue (aside > p)
+    document.querySelector('aside > p').textContent = product.description.replace(/'/g, '"')
+
+    // Récupérer le champ select #format, parcourir les déclinaisons et remplir le champ avec les options
+    const select = document.querySelector('#format')
+    product.declinaisons.forEach((el, index) => {
+        const option = `<option data-id="${index}" value="${el.taille}">Format : ${el.taille}</option>`
+        select.insertAdjacentHTML('beforeend', option)
+    })
+
+    // Au changement du select, changer le prixn en récupérant le data-id de l'option sélectionnée et en récupérant le prix de la déclinaison correspondante
+    select.addEventListener('change', () => {
+        const id = select.options[select.selectedIndex].dataset.id
+        document.querySelector('.showprice').textContent = `${product.declinaisons[id].prix}€`
+    })
+}
+
+// Au clic sur le bouton, ajouter le produit au panier
+const button = document.querySelector('.button-buy')
+button.addEventListener('click', () => {
+    const quantityInput = document.querySelector('#quantity');
+    const formatInput = document.querySelector('#format');
+
+    const quantity = parseInt(quantityInput.value);
+    const format = formatInput.value;
+
+    if (quantity < 1) {       
+        // Créer une modale dans le dom qui affiche la "La quantité doit être d'au moins 1" et qui se ferme au bout de 3 secondes
+        showModal("La quantité doit être d'au moins 1")
+        return;
+    }
+
+    const panier = JSON.parse(localStorage.getItem('cart')) || [];
+
+    const existingProductIndex = panier.findIndex(el => el.id === id && el.format === format);
+
+    if (existingProductIndex !== -1) {
+        const newQuantity = panier[existingProductIndex].quantity + quantity;
+        if (newQuantity > 100) {
+
+            showModal("Vous ne pouvez pas commander plus de 100 exemplaires d'une même œuvre");
+            return
+        } 
+        panier[existingProductIndex].quantity = newQuantity;
+        localStorage.setItem('cart', JSON.stringify(panier));
+        numberItem()
+        showModal("Produit ajouté au panier");
+
+        return;
+    } 
+
+    panier.push({
+        id,
+        quantity,
+        format,
+    });
+    showModal("Produit ajouté au panier");
+    localStorage.setItem('cart', JSON.stringify(panier));
+    numberItem()
+})
