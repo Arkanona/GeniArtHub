@@ -1,122 +1,119 @@
-# GeniArtHub - Dossier de spécifications techniques et fonctionnelles
+# GeniArtHub
 
-## Sommaire
+GeniArtHub est un projet de site e-commerce consacré à des œuvres d'art réalisées avec l'intelligence artificielle. Il propose un catalogue d'œuvres, plusieurs formats pour chaque création et un parcours de commande allant de la sélection d'un produit jusqu'à l'affichage d'un numéro de confirmation.
 
-- [GeniArtHub - Dossier de spécifications techniques et fonctionnelles](#geniarthub---dossier-de-spécifications-techniques-et-fonctionnelles)
-  - [Sommaire](#sommaire)
-  - [Architecture de GeniArtHub](#architecture-de-geniarthub)
-    - [La page d'accueil](#la-page-daccueil)
-    - [La page détail d'une œuvre](#la-page-détail-dune-œuvre)
-    - [La page panier](#la-page-panier)
-    - [La page confirmation de commande](#la-page-confirmation-de-commande)
-  - [Endpoints de l'API](#endpoints-de-lapi)
-  - [Paramètres](#paramètres)
-  - [Validation de commande](#validation-de-commande)
-  - [Informations importantes](#informations-importantes)
-  - [Le serveur back](#le-serveur-back)
+Le projet repose sur un site en HTML, CSS et JavaScript et sur une API développée avec Node.js et Express. L'objectif est de mettre en pratique la récupération de données depuis une API, la manipulation du DOM et la gestion d'un panier côté navigateur.
 
-## Architecture de GeniArtHub
+## Fonctionnement du site
 
-Le site web GeniArtHub est spécialisé dans la vente d'œuvres d'art réalisées par intelligence artificielle. Le site se compose de 4 pages spécifiques.
+### Catalogue et fiches produits
 
-### La page d'accueil
+La page d'accueil récupère les œuvres depuis l'API et les affiche sous forme de catalogue. Chaque œuvre possède sa propre fiche avec une image, un titre, une description et différents formats d'impression.
 
-La page d'accueil permet d'afficher de manière dynamique toutes les œuvres d'art. Les œuvres affichées sur la page d'accueil proviennent d'un serveur back développé avec NodeJS et Express.
+Sur la fiche produit, le prix se met à jour en fonction du format sélectionné. Le visiteur peut choisir une quantité et ajouter l'œuvre à son panier.
 
-Le serveur back est fourni avec le projet GeniArtHub.
+### Panier
 
-### La page détail d'une œuvre
+Le panier est enregistré dans le `localStorage` du navigateur. Les produits sont distingués par leur identifiant et leur format, ce qui permet de regrouper les quantités lorsqu'une même déclinaison est ajoutée plusieurs fois.
 
-La page de détail d'une œuvre d'art est une page qui s'affiche lorsque l'utilisateur clique sur une œuvre d'art sur la page d'accueil. Pour afficher une œuvre en particulier, il faut faire appel au serveur back en lui transmettant l'ID de l'œuvre en question.
+Depuis la page panier, il est possible de modifier les quantités, de supprimer un article et de consulter le nombre total de produits ainsi que le montant de la commande. Les prix sont récupérés depuis l'API et ne sont pas stockés dans le `localStorage`.
 
-Sur la page de détail des œuvres, on trouve :
+### Validation de commande
 
-- Le titre long
-- Une description tronquée récupérée de la description longue
-- Le prix de l'œuvre par défaut (la première œuvre)
-- Un champ texte permettant de renseigner la quantité d'œuvres à ajouter
-- Un champ select qui permet de sélectionner une œuvre parmi les différents formats disponibles
-- La description complète
+Le formulaire demande un prénom, un nom, une adresse, une ville et une adresse e-mail. Des contrôles JavaScript vérifient les informations avant l'envoi à l'API.
 
-Le prix de l'œuvre dépend du format choisi.
+En cas de réponse positive, le site affiche le numéro de commande dans une fenêtre de confirmation, vide le panier et réinitialise le formulaire. Il s'agit d'un **parcours de commande de démonstration** : aucun paiement en ligne n'est intégré et les commandes ne sont pas enregistrées durablement dans le backend.
 
-Les déclinaisons ne possèdent pas d'identifiants propres, vous allez devoir utiliser leur taille comme identifiants.
+## Technologies utilisées
 
-### La page panier
+| Partie | Technologies |
+| --- | --- |
+| Frontend | HTML5, CSS3, JavaScript (sans framework) |
+| Backend | Node.js, Express 4 |
+| Échanges | API REST, `fetch`, JSON |
+| Stockage du panier | `localStorage` |
+| Identifiants de commande | UUID |
 
-La page panier est en deux parties. La première partie contient la liste des produits qui sont présents dans le panier. La deuxième partie contient un formulaire de commande qui permet d'effectuer une commande.
+Les données des huit œuvres sont définies directement dans `back/models/Product.js`. Le projet ne nécessite donc pas l'installation d'une base de données.
 
-La liste des produits doit afficher :
+## Structure du projet
 
-- L'image
-- Le titre long
-- Le format choisi
-- Le prix unitaire
-- La quantité choisie
-- Un lien de suppression
+```text
+GeniArtHub/
+├── front/
+│   ├── index.html             # Catalogue des œuvres
+│   ├── product.html           # Détail et sélection d'une œuvre
+│   ├── cart.html              # Panier et formulaire de commande
+│   ├── css/                   # Feuilles de style
+│   ├── img/                   # Images et éléments graphiques
+│   └── js/                    # Catalogue, panier, commande et modales
+├── back/
+│   ├── server.js              # Démarrage du serveur HTTP
+│   ├── app.js                 # Configuration d'Express
+│   ├── routes/product.js      # Routes de l'API
+│   ├── controllers/product.js # Traitement des requêtes
+│   ├── models/Product.js      # Catalogue des produits
+│   ├── images/                # Images servies par l'API
+│   └── package.json          # Dépendances du backend
+└── readme.md                  # Documentation initiale
+```
 
-Le total de la commande et le nombre d'articles dans le panier doivent être calculés automatiquement.
+## Installation et lancement
 
-Lorsque la quantité d'un produit change, le nombre total d'articles et le montant doivent être recalculés automatiquement.
+Il faut disposer de **Node.js et npm** pour démarrer l'API. Un navigateur moderne et un serveur local statique, comme l'extension Live Server de VS Code, suffisent pour le frontend.
 
-Le formulaire permettant d'effectuer la commande doit contenir des données bien formatées.
+Clonez le dépôt :
 
-Les données doivent également être valides. Ce qui signifie :
+```bash
+git clone https://github.com/Arkanona/GeniArtHub.git
+cd GeniArtHub
+```
 
-- Prénom : Minimum 2 lettres, pas de caractères spéciaux
-- Nom : Minimum 2 lettres, pas de caractères spéciaux
-- Adresse : Au moins 10 caractères
-- Ville : Au moins 3 caractères, pas de chiffres
-- Email : Doit être un mail valide
+Ouvrez ensuite un terminal dans le dossier `back`, installez les dépendances et démarrez le serveur :
 
-**/!\ ATTENTION – Chaque action effectuée (modification des quantités, suppression de produit, validation du formulaire) doit pouvoir fonctionner sans rechargement de la page.**
+```bash
+cd back
+npm install
+node server.js
+```
 
-### La page confirmation de commande
+L'API est alors accessible à l'adresse `http://localhost:3000/api/products`.
 
-La page de confirmation de commande doit afficher le numéro de commande récupéré depuis le back lors de la validation d'une commande.
+Pour le frontend, ouvrez `front/index.html` avec Live Server, ou servez le dossier `front` avec un autre serveur HTTP statique.
 
-Si le numéro de commande a bien été récupéré, les données dans les champs de formulaire de commande doivent être réinitialisées.
+**Attention aux adresses de l'API :** dans l'état actuel du dépôt, `front/js/index.js`, `front/js/cart.js` et `front/js/order.js` appellent le serveur hébergé sur `https://geniarthub.onrender.com`, tandis que `front/js/product.js` appelle `http://localhost:3000`. Pour utiliser entièrement l'API locale, remplacez l'adresse des appels `fetch` concernés par `http://localhost:3000/api/products` (en conservant les chemins spécifiques, comme `/:id` et `/order`).
 
-Les données du panier doivent également être vidées.
+## API
 
-## Endpoints de l'API
+Les routes sont regroupées sous le préfixe `/api/products`.
 
-- [http://localhost:3000/api/products/](http://localhost:3000/api/products/)
-- [http://localhost:3000/api/products/{product-id}](http://localhost:3000/api/products/{product-id})
-- [http://localhost:3000/api/products/order](http://localhost:3000/api/products/order)
+| Méthode | Route | Utilisation |
+| --- | --- | --- |
+| `GET` | `/api/products` | Récupérer toutes les œuvres |
+| `GET` | `/api/products/:id` | Récupérer une œuvre par son identifiant |
+| `POST` | `/api/products/order` | Valider une commande de démonstration et obtenir un identifiant |
 
-## Paramètres
+Le corps attendu pour une commande est de la forme :
 
-| Méthode | URL              | Requête                                | Réponse                                                |
-| ------- | ---------------- | -------------------------------------- | ------------------------------------------------------ |
-| GET     | /                | -                                      | Tableau d'objets de toutes les œuvres                  |
-| GET     | /{product-id}    | -                                      | Tableau d'objet correspondant à l'élément dont l'ID est transmis dans l'endpoint |
-| POST    | /order           | JSON contenant un objet de contact et un tableau de produits | Objet de contact, tableau de produits et numéro de commande |
+```json
+{
+  "contact": {
+    "firstName": "Camille",
+    "lastName": "Martin",
+    "address": "12 avenue des Arts",
+    "city": "Lyon",
+    "email": "camille@example.com"
+  },
+  "products": ["abc12345", "def67890"]
+}
+```
 
-## Validation de commande
+Dans cette version, l'API reçoit uniquement les identifiants des œuvres pour la commande, sans transmettre les formats ni les quantités sélectionnés dans le panier.
 
-Afin de valider la commande, sur la route /order, les informations que le serveur doit recevoir doivent être :
+## À propos du projet
 
-- Un objet contact avec les champs `firstName`, `lastName`, `address`, `city` et `email`
-- Un objet `products` qui doit être un tableau de string contenant uniquement les id des produits
+GeniArtHub a été réalisé comme exercice de développement web autour d'une boutique en ligne. Il permet de travailler l'affichage dynamique de données, la communication entre le navigateur et une API, la persistance temporaire d'un panier et la validation d'un formulaire.
 
-Pour le moment, le serveur back est en phase de développement, pour les commandes le système ne prend en compte que l'envoi d'ID. Par la suite, il sera possible d'envoyer l'ID, les déclinaisons et les quantités.
+Le dépôt contient le frontend ainsi que le serveur API nécessaire au fonctionnement du projet.
 
-## Informations importantes
-
-Pour l'ajout au panier, vous devez utiliser le `localStorage` pour stocker les données. Vous devez prendre en compte les informations suivantes :
-
-- Si l'article n'existe pas dans le panier, vous devez l'enregistrer dans le localStorage.
-- Si l'article existe déjà dans le panier, vous ne devez pas l'avoir en double dans le localStorage, vous devez modifier la quantité dans le localStorage.
-- Vous devez enregistrer dans le localStorage les différentes déclinaisons de produit.
-- Vous ne devez pas dupliquer votre localStorage, vous devez enregistrer les données dans un tableau.
-- Pour des raisons de sécurité, vous ne devez PAS enregistrer le prix des produits dans le localStorage.
-- Vous devez limiter à 100 unités par produit dans le panier et sur la page d'ajout de produits.
-
-## Le serveur back
-
-Le serveur back nécessite NodeJS pour fonctionner. Vous devez vous positionner dans le dossier back et lancer la commande « npm install » pour installer les dépendances.
-
-Une fois les dépendances installées, vous n'avez plus besoin de relancer la commande d'installation. Vous devez lancer le serveur en utilisant la commande « node server ».
-
-À chaque fois que vous devez travailler sur le projet, n'oubliez pas de lancer le serveur avec la commande « node server ».
+**Dépôt GitHub :** [Arkanona/GeniArtHub](https://github.com/Arkanona/GeniArtHub)
